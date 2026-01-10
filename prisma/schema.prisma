@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  recipes   Recipe[]
+}
+
+model Recipe {
+  id          String   @id @default(uuid())
+  title       String
+  sourceUrl   String?
+  imageUrl    String?
+  
+  data        String   
+  
+  tags        String?
+  
+  status      String?  @default("completed")
+  statusMessage String?
+  
+  notes       String?
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+}
+
