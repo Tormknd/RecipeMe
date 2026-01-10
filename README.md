@@ -55,9 +55,23 @@ Ce projet est un **terrain d'expérimentation (R&D)** conçu pour explorer l'éc
 ### 3. Support multi-sources avec fallback
 **Problème** : Chaque source (TikTok, Instagram, blog, capture d'écran) nécessite une approche différente.
 
-**Solution** :
-- Architecture modulaire avec fallback en cascade : Scraper API → Jina Reader → Gemini direct
-- Détection automatique du type de source et routage vers le bon traitement
+**Solution** : Architecture modulaire avec détection automatique du type de source et routage intelligent.
+
+```mermaid
+graph TD
+    A[Utilisateur colle un lien] --> B{Type de source ?}
+    B -- Blog/Site Web --> C[Jina Reader]
+    B -- Réseau Social --> D[Scraper API]
+    D --> E{Données complètes ?}
+    E -- Oui --> F[Extraction JSON]
+    E -- Non --> G[Téléchargement Vidéo]
+    G --> H[Gemini Vision AI]
+    H --> F
+    C --> I[Gemini Text AI]
+    I --> F
+    F --> J[Base de Données]
+```
+
 - Support multi-images pour les captures d'écran (combinaison de plusieurs images)
 
 ### 4. Performance et coûts IA
