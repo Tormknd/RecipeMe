@@ -78,7 +78,6 @@ graph TD
 **Problème** : Les appels Gemini Vision sont coûteux en tokens et en temps.
 
 **Solution** :
-- Utilisation directe des données structurées de l'API scraper (évite le retraitement)
 - Parsing intelligent des ingrédients avec regex pour extraire quantité/unité/nom
 - Monitoring des métriques d'utilisation (tokens, coûts) pour optimisation
 
@@ -248,7 +247,5 @@ MIT
 ## 🌐 Langue
 
 Ce README est en français. Une version anglaise est disponible : [`README.en.md`](./README.en.md)
-
-> 💡 **Pour les recruteurs internationaux** : La version anglaise est disponible dans [`README.en.md`](./README.en.md).
 
 
