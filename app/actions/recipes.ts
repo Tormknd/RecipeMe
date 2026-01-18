@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { extractRecipeFromInput } from "@/lib/recipes/ai-service"
 import { revalidatePath } from "next/cache"
 import type { RecipeContent } from "@/lib/recipes/schemas"
+import { checkAiRateLimit, trackAiUsage } from "@/lib/rate-limit"
 
 export type IngestRecipeResult = {
   success: boolean
@@ -136,6 +137,12 @@ export async function ingestRecipeAction(formData: FormData): Promise<IngestReci
 
     await cleanupStuckRecipes(user.id)
 
+    // Vérifier les quotas IA avant de commencer
+    const rateLimit = await checkAiRateLimit(user.id)
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimit.error }
+    }
+
     const url = formData.get('url') as string | null
     const files = formData.getAll('files') as File[]
 
@@ -168,6 +175,10 @@ export async function ingestRecipeAction(formData: FormData): Promise<IngestReci
     })
 
     console.log(`🚀 Starting background processing for recipe ${recipe.id}`)
+    
+    // Enregistrer l'utilisation IA
+    await trackAiUsage(user.id)
+    
     processRecipeInBackground(recipe.id, user.id, url, files.length > 0 ? Array.from(files) : null, imageBuffers)
       .then(() => {
         console.log(`✅ Background processing completed for recipe ${recipe.id}`)
@@ -433,6 +444,12 @@ export async function retryRecipeAction(recipeId: string): Promise<RetryRecipeRe
       return { success: false, error: "Aucune URL source disponible pour réessayer" }
     }
 
+    // Vérifier les quotas IA avant de réessayer
+    const rateLimit = await checkAiRateLimit(user.id)
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimit.error }
+    }
+
     await prisma.recipe.update({
       where: { 
         id: recipeId,
@@ -444,6 +461,9 @@ export async function retryRecipeAction(recipeId: string): Promise<RetryRecipeRe
         data: JSON.stringify({ title: "En cours de création...", ingredients: [], instructions: [] })
       }
     })
+
+    // Enregistrer l'utilisation IA
+    await trackAiUsage(user.id)
 
     processRecipeInBackground(recipeId, user.id, recipe.sourceUrl, null, null)
       .catch(err => console.error("Background processing failed on retry:", err))

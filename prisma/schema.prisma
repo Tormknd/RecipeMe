@@ -43,3 +43,12 @@ model Recipe {
   @@index([userId])
 }
 
+model AiUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String   @default("recipe_generation")
+  createdAt DateTime @default(now())
+  
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
