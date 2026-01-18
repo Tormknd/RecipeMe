@@ -516,7 +516,9 @@ export async function createRecipeAction(formData: FormData): Promise<CreateReci
       servings: servings?.trim() || null,
       tags,
       difficulty: null
-    }    const recipe = await prisma.recipe.create({
+    }
+
+    const recipe = await prisma.recipe.create({
       data: {
         title: recipeData.title,
         sourceUrl: null,
