@@ -63,12 +63,8 @@ async function processRecipeInBackground(
         recipeContent = await extractRecipeFromInput(url, true, undefined, undefined, async (message: string) => {
           await updateRecipeStatus(recipeId, userId, 'processing', message)
         })
-        console.log(`✅ extractRecipeFromInput completed successfully for ${recipeId}`)
-        console.log(`✅ Recipe content title: ${recipeContent?.title}`)
       } catch (extractError: any) {
-        console.error(`❌ extractRecipeFromInput failed for ${recipeId}:`, extractError)
-        console.error(`❌ Error message:`, extractError?.message)
-        console.error(`❌ Error stack:`, extractError?.stack)
+        console.error(`❌ extractRecipeFromInput failed for ${recipeId}:`, extractError.message)
         throw extractError
       }
     } else {
@@ -78,8 +74,6 @@ async function processRecipeInBackground(
     if (!recipeContent) {
       throw new Error("Le traitement n'a pas retourné de contenu de recette")
     }
-
-    console.log(`✅ Recipe processing completed for ${recipeId}, updating database...`)
     
     await prisma.recipe.update({
       where: { 
@@ -97,7 +91,6 @@ async function processRecipeInBackground(
       }
     })
     
-    console.log(`✅ Recipe ${recipeId} status updated to 'completed'`)
     // Note: revalidatePath ne peut pas être appelé ici car cette fonction s'exécute en arrière-plan
     // Le polling côté client (RecipeCardProgress) détectera le changement de statut et rafraîchira automatiquement
   } catch (error) {
@@ -523,9 +516,7 @@ export async function createRecipeAction(formData: FormData): Promise<CreateReci
       servings: servings?.trim() || null,
       tags,
       difficulty: null
-    }
-
-    const recipe = await prisma.recipe.create({
+    }    const recipe = await prisma.recipe.create({
       data: {
         title: recipeData.title,
         sourceUrl: null,
