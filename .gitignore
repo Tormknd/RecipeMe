@@ -23,6 +23,7 @@
 *.crt
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
 terminals/
