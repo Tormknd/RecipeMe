@@ -20,6 +20,8 @@ RUN npx prisma generate
 
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
+# Create public directory if it doesn't exist to prevent copy error in runner stage
+RUN mkdir -p public
 RUN npm run build
 
 # Production runner stage
