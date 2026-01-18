@@ -34,8 +34,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# Install wget for healthcheck and openssl for Prisma
+RUN apk add --no-cache wget openssl
 
 # Copy public assets
 COPY --from=builder /app/public ./public
