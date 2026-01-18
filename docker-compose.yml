@@ -1,0 +1,32 @@
+services:
+  recipeme-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: recipeme-app
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/prod.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RECIPE_SCRAPER_URL=http://recipeme-scraper:5000
+    volumes:
+      - recipeme-data:/app/data
+    networks:
+      - flavorsync-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  recipeme-data:
+    driver: local
+
+networks:
+  flavorsync-network:
+    external: true

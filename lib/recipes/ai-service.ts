@@ -139,8 +139,6 @@ async function fetchSocialMediaContent(
     }
     
     const scraperUrl = baseUrl.endsWith('/') ? `${baseUrl}process` : `${baseUrl}/process`;
-    console.log(`🤖 Calling Scraper API for social media content: ${url}`);
-    console.log(`🔗 Scraper API URL: ${scraperUrl}`);
     
     const response = await fetch(scraperUrl, {
       method: 'POST',
@@ -150,52 +148,33 @@ async function fetchSocialMediaContent(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("❌ Scraper API Error Response:", errorData);
+      console.error("❌ Scraper API Error:", errorData.error || response.statusText);
       throw new Error(errorData.error || `Scraper API Error: ${response.statusText}`);
     }
 
     const json: ScraperAPIResponse = await response.json();
     
-    console.log("📦 Scraper API Raw Response:", JSON.stringify(json, null, 2));
-    
-    // Utiliser les messages de progression de l'API si disponibles
-    // Note: On ne reçoit que le dernier message car c'est une requête HTTP synchrone
-    // Les messages intermédiaires sont perdus, mais on peut utiliser le dernier message
+    // Progress handling
     if (json.progress && json.progress.message) {
-      console.log(`📊 API Progress: ${json.progress.stage || 'N/A'} - ${json.progress.message || 'En cours...'} (${json.progress.percentage || 0}%)`);
       if (onProgress) {
         await onProgress(json.progress.message);
       }
     }
     
     if (!json.success || !json.data) {
-      console.error("❌ Scraper API returned error or no data:", json);
+      console.error("❌ Scraper API returned error or no data");
       throw new Error(json.error || "Failed to scrape social media content");
     }
     
-    // Mettre à jour avec le dernier message de progression si disponible
     if (json.progress && json.progress.message && onProgress) {
       await onProgress(json.progress.message);
     }
 
-    if (json.method) {
-      console.log(`📊 Scraper API method: ${json.method}`);
-      if (json.usage) {
-        console.log(`📊 API usage: ${json.usage.totalTokens} tokens, ~${json.usage.costEUR?.toFixed(4)}€`);
-      }
-    }
-
-    console.log("📋 Scraper API Recipe Data:", JSON.stringify(json.data, null, 2));
-
     try {
       const recipeContent = convertAPIRecipeToRecipeContent(json.data);
-      
-      console.log(`✅ Scraper API returned structured recipe: ${recipeContent.title}`);
-      console.log("🍳 Converted Recipe Content:", JSON.stringify(recipeContent, null, 2));
       return recipeContent;
     } catch (conversionError: any) {
-      console.error("❌ Error converting API recipe to RecipeContent:", conversionError);
-      console.error("❌ Raw API data that failed conversion:", JSON.stringify(json.data, null, 2));
+      console.error("❌ Error converting API recipe:", conversionError);
       throw new Error(`Erreur lors de la conversion de la recette: ${conversionError?.message || 'Erreur inconnue'}`);
     }
     
@@ -319,7 +298,6 @@ export async function extractRecipeFromInput(
       }
       
       if (Array.isArray(imageBuffers)) {
-        console.log(`👁️ Processing ${imageBuffers.length} Images...`)
         imageBuffers.forEach((img, index) => {
           promptParts.push(fileToGenerativePart(img.buffer, img.mimeType))
         })
@@ -332,7 +310,6 @@ export async function extractRecipeFromInput(
           `IMPORTANT : Reformule les instructions dans tes propres mots, ne recopie pas mot pour mot le texte original. Structure les informations de manière claire et organisée pour créer une référence personnelle structurée.`
         )
       } else {
-        console.log("👁️ Processing Image...")
         const buffer = imageBuffers as Buffer
         const mime = mimeType || 'image/jpeg'
         promptParts.push(fileToGenerativePart(buffer, mime))
@@ -360,8 +337,6 @@ export async function extractRecipeFromInput(
           try {
             const recipeContent = await fetchSocialMediaContent(input, onProgress);
             if (recipeContent) {
-              console.log("✅ Using structured recipe from Scraper API (no Gemini reprocessing needed)");
-              console.log("✅ Recipe content:", JSON.stringify(recipeContent, null, 2));
               return recipeContent;
             }
             console.warn("⚠️ Scraper API returned null, falling back to Gemini processing");
@@ -370,8 +345,7 @@ export async function extractRecipeFromInput(
             }
             promptParts.push(`Texte à analyser :\n"""\n${input.slice(0, 20000)}\n"""`)
           } catch (socialMediaError: any) {
-            console.error("❌ Error in fetchSocialMediaContent:", socialMediaError);
-            console.error("❌ Error stack:", socialMediaError?.stack);
+            console.error("❌ Error in fetchSocialMediaContent:", socialMediaError.message);
             throw socialMediaError; // Re-throw pour que le catch parent le gère
           }
         } else {
@@ -386,10 +360,10 @@ export async function extractRecipeFromInput(
         }
       } catch (e: any) {
         if (isSocialMedia) {
-          console.error("Fetch failed for social media:", e);
+          console.error("Fetch failed for social media:", e.message);
           throw new Error(e?.message || "Impossible de récupérer le contenu depuis le réseau social. Vérifiez que le scraper API est accessible.");
         }
-        console.warn("Fetch failed, falling back to raw URL analysis by Gemini knowledge", e)
+        console.warn("Fetch failed, falling back to raw URL analysis", e.message)
         promptParts.push(`Texte à analyser :\n"""\n${input.slice(0, 20000)}\n"""`)
       }
     } else {
@@ -449,8 +423,7 @@ export async function extractRecipeFromInput(
     
     return RecipeContentSchema.parse(json)
   } catch (error: any) {
-    console.error("AI Parsing Error:", error)
-    console.log("Raw Response:", text)
+    console.error("AI Parsing Error:", error.message)
     
     if (error?.message?.includes('RECITATION') || error?.message?.includes('recitation')) {
       throw error

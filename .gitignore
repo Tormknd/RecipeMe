@@ -43,3 +43,7 @@ next-env.d.ts
 /prisma/*.db
 /prisma/*.db-journal
 
+# deployment
+recipeme.tar.gz
+*.tar.gz
+

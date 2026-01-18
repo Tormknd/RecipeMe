@@ -532,13 +532,12 @@ export async function createRecipeAction(formData: FormData): Promise<CreateReci
         imageUrl: null,
         data: JSON.stringify(recipeData),
         tags: recipeData.tags?.join(',') || null,
-        status: 'completed',
-        userId: user.id
-      }
-    })
-
-    revalidatePath('/recipes')
-    return {
+      status: 'completed',
+      userId: user.id
+    }
+  });
+  revalidatePath('/recipes')
+  return {
       success: true,
       recipeId: recipe.id
     }

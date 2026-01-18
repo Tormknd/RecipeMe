@@ -173,7 +173,68 @@ npx prisma migrate deploy        # Applique les migrations en production
 npx prisma studio                # Interface graphique pour la DB (dev)
 ```
 
-### 💡 Ingestion de Recettes
+---
+
+## 🚀 Déploiement en Production
+
+RecipeMe peut être déployé sur n'importe quel serveur avec Docker.
+
+### 📋 Guides de déploiement disponibles
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Déploiement en 5 minutes (recommandé)
+- **[DEPLOY.md](./DEPLOY.md)** - Guide complet avec toutes les options
+- **[SERVER-CONFIG.md](./SERVER-CONFIG.md)** - Configuration détaillée du serveur
+
+### 🎯 Déploiement rapide
+
+1. **Configuration initiale** (une seule fois) :
+   - Configurer Nginx avec basePath `/recipeMe`
+   - Créer le fichier `.env` sur le serveur avec votre clé Gemini
+   - Vérifier que `recipeme-scraper` est accessible
+
+2. **Déploiement** (depuis Windows PowerShell) :
+   ```powershell
+   .\deploy.ps1
+   ```
+
+3. **Vérification** :
+   ```
+   https://votre-domaine.fr/recipeMe
+   ```
+
+Le projet inclut :
+- ✅ `Dockerfile` optimisé pour production
+- ✅ `docker-compose.yml` pour orchestration
+- ✅ Scripts de déploiement automatique (Windows/Linux)
+- ✅ Configuration Nginx prête à l'emploi
+- ✅ Support du basePath pour sous-domaine
+- ✅ Migrations Prisma automatiques
+
+---
+
+### Déploiement rapide avec Docker
+
+```bash
+# 1. Construire l'image
+docker build -t recipeme-app:latest .
+
+# 2. Créer un fichier .env avec vos variables
+# DATABASE_URL="file:/app/data/prod.db"
+# GEMINI_API_KEY="votre_clé"
+# RECIPE_SCRAPER_URL="http://recipeme-scraper:5000"
+
+# 3. Lancer avec docker-compose
+docker-compose up -d
+
+# 4. Appliquer les migrations
+docker exec recipeme-app npx prisma migrate deploy
+```
+
+**Guide complet** : Consultez [`DEPLOY.md`](./DEPLOY.md) pour le déploiement sur Hetzner avec Nginx et basePath personnalisé.
+
+---
+
+### Commandes Prisma Utiles
 
 RecipeMe supporte plusieurs méthodes pour importer des recettes :
 

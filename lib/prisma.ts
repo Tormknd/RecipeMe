@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
 const prismaClientOptions = {
-  log: ['query', 'error', 'warn'] as const,
+  log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'error', 'warn'],
 }
 
 const getPrismaClient = () => {

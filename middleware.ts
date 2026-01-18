@@ -19,6 +19,11 @@ export function middleware(request: NextRequest) {
   const isAuthPage = pathname === '/login' || pathname === '/signup'
 
   if (isAuthPage) {
+    if (hasSession) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/recipes'
+      return NextResponse.redirect(url)
+    }
     return NextResponse.next()
   }
 

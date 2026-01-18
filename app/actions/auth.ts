@@ -28,7 +28,11 @@ export async function signup(formData: FormData): Promise<AuthResult> {
     const password = formData.get('password') as string
     const name = formData.get('name') as string | null
 
-    const validated = SignupSchema.parse({ email, password, name })
+    const validated = SignupSchema.parse({ 
+      email, 
+      password, 
+      name: name || undefined 
+    })
 
     const existingUser = await prisma.user.findUnique({
       where: { email: validated.email },
@@ -53,7 +57,9 @@ export async function signup(formData: FormData): Promise<AuthResult> {
     return { success: true, redirectUrl: '/recipes' }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const errorMessage = error.errors?.[0]?.message || 'Données invalides'
+      console.error('Zod Validation Error:', JSON.stringify(error.errors, null, 2))
+      return { success: false, error: errorMessage }
     }
     
     console.error('Signup Error:', error)
@@ -87,7 +93,9 @@ export async function login(formData: FormData): Promise<AuthResult> {
     return { success: true, redirectUrl: '/recipes' }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const errorMessage = error.errors?.[0]?.message || 'Données invalides'
+      console.error('Zod Validation Error:', JSON.stringify(error.errors, null, 2))
+      return { success: false, error: errorMessage }
     }
     
     console.error('Login Error:', error)
